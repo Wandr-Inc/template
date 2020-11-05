@@ -5,47 +5,61 @@
         v-card
           v-card-title Users
           v-card-text
-            v-list-group
+            v-list-group(
+              v-for='user in users'
+              :key='user.display_name'
+            )
               template(v-slot:activator)
                 v-list-item-avatar
-                  img(:src='require("@/assets/img/user_avatar.png")')
+                  img(:src='user.display_picture')
                 v-list-item-content
-                  | {{ name }}
+                  | {{ user.display_name }}
               v-container
                 v-row
                   v-col(
-                    v-for='(pic, i) in pictures'
-                    :key='pic'
+                    v-for='(post, index) in user.posts'
+                    :key='index'
                     cols='12' md='6' lg='4' xl='3'
                   )
                     img(
-                      :src='pic'
+                      :src='post.thumbnail'
                       style='object-fit: contain; width: 100%;'
                     )
 </template>
 <script lang="ts">
-import { defineComponent, reactive, ref } from '@vue/composition-api'
+import { reactive } from '@vue/composition-api'
+import { user } from '~/models/user'
 import axios from 'axios'
 
-export default defineComponent({
-  // example setup function feel free to delete
+export default {
   setup () {
-    const name = ref<string>('John Smith')
-    const pictures = reactive<string[]>([])
+    const users = reactive<Array<user>>([])
 
-    for (let i = 0; i < 3; i++) {
-      axios({
-        url: 'https://aws.random.cat/meow',
-        method: 'GET'
-      }).then(res => {
-        pictures.push(res.data.file)
+    axios({
+      url: 'https://moved-phoenix-38.hasura.app/v1/graphql',
+      method: 'post',
+      data: {
+        query: `
+          query {
+            users {
+              display_name
+              display_picture
+              posts {
+                thumbnail
+              }
+            }
+          }
+        `
+      }
+    }).then(res => {
+      res.data.data.users.forEach((user: user) => {
+        users.push(user)
       })
-    }
+    })
 
     return {
-      name,
-      pictures
+      users
     }
   }
-})
+}
 </script>
