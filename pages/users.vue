@@ -5,46 +5,48 @@
         v-card
           v-card-title Users
           v-card-text
-            v-list-group
-              template(v-slot:activator)
-                v-list-item-avatar
-                  img(:src='require("@/assets/img/user_avatar.png")')
-                v-list-item-content
-                  | {{ name }}
-              v-container
-                v-row
-                  v-col(
-                    v-for='(pic, i) in pictures'
-                    :key='pic'
-                    cols='12' md='6' lg='4' xl='3'
-                  )
-                    img(
-                      :src='pic'
-                      style='object-fit: contain; width: 100%;'
-                    )
+            user(
+              v-for='(user, key) in users'
+              :key='key'
+              :user='user'
+            )
 </template>
+
 <script lang="ts">
 import { defineComponent, reactive, ref } from '@vue/composition-api'
 import axios from 'axios'
 
-export default defineComponent({
-  // example setup function feel free to delete
-  setup () {
-    const name = ref<string>('John Smith')
-    const pictures = reactive<string[]>([])
+import Post from '@/interfaces/post'
+import User from '@/interfaces/user'
 
-    for (let i = 0; i < 3; i++) {
-      axios({
-        url: 'https://aws.random.cat/meow',
-        method: 'GET'
-      }).then(res => {
-        pictures.push(res.data.file)
-      })
+import config from '@/config'
+
+export default defineComponent({
+  name: 'Users',
+
+  setup () {
+    const users = reactive<User[]>([])
+    const data = {
+      query: `
+        query MyQuery {
+          users {
+            display_name
+            display_picture
+            posts {
+              thumbnail
+            }
+          }
+        }
+      `
     }
 
+    axios.post(config.graphiqlEndpoint, data)
+      .then(res => {
+        users.push(...res.data.data.users)
+      })
+
     return {
-      name,
-      pictures
+      users
     }
   }
 })

@@ -19,5 +19,12 @@ module.exports = {
   collectCoverageFrom: [
     '<rootDir>/components/**/*.vue',
     '<rootDir>/pages/**/*.vue'
-  ]
+  ],
+  globals: {
+    'vue-jest': {
+      pug: {
+        doctype: 'html'
+      }
+    }
+  }
 }
